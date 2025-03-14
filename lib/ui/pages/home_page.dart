@@ -3,11 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_media/app/configs/colors.dart';
 import 'package:social_media/app/configs/theme.dart';
+import 'package:social_media/services/functions/auth_service.dart';
 import 'package:social_media/ui/bloc/post_cubit.dart';
+import 'package:social_media/ui/pages/others/user_page.dart';
 import 'package:social_media/ui/widgets/card_post.dart';
 import 'package:social_media/ui/widgets/clip_status_bar.dart';
 
 import '../widgets/custom_app_bar.dart';
+
+String? currentUserEmail = "";
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -20,6 +24,15 @@ class HomePage extends StatelessWidget {
         statusBarIconBrightness: Brightness.dark,
       ),
     );
+
+    final AuthService _authService = AuthService();
+
+    void logOut() async {
+      final _auth = AuthService();
+      _auth.signOut();
+    }
+
+    currentUserEmail = _authService.getCurrentUser()?.email;
     return Scaffold(
       body: Stack(
         alignment: Alignment.bottomCenter,
@@ -42,8 +55,8 @@ class HomePage extends StatelessWidget {
                           return Column(
                             children: state.posts
                                 .map((post) => GestureDetector(
-                              child: CardPost(post: post),
-                            ))
+                                      child: CardPost(post: post),
+                                    ))
                                 .toList(),
                           );
                         } else {
@@ -147,44 +160,44 @@ class HomePage extends StatelessWidget {
   }
 
   _buildBackgroundGradient() => Container(
-    width: double.infinity,
-    height: 150,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(colors: [
-        AppColors.whiteColor.withOpacity(0),
-        AppColors.whiteColor.withOpacity(0.8),
-      ], begin: Alignment.topCenter, end: Alignment.bottomCenter),
-    ),
-  );
+        width: double.infinity,
+        height: 150,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            AppColors.whiteColor.withOpacity(0),
+            AppColors.whiteColor.withOpacity(0.8),
+          ], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+        ),
+      );
 
   CustomAppBar _buildCustomAppBar(BuildContext context) {
     return CustomAppBar(
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.blackColor.withOpacity(0.2),
-                  blurRadius: 35,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Image.asset(
-              'assets/images/ic_logo.png',
-              width: 40,
-              height: 40,
-            ),
-          ),
-          const SizedBox(width: 12),
+          // Container(
+          //   width: 40,
+          //   height: 40,
+          //   decoration: BoxDecoration(
+          //     boxShadow: [
+          //       BoxShadow(
+          //         color: AppColors.blackColor.withOpacity(0.2),
+          //         blurRadius: 35,
+          //         offset: const Offset(0, 10),
+          //       ),
+          //     ],
+          //   ),
+          //   child: Image.asset(
+          //     'assets/images/ic_logo.png',
+          //     width: 40,
+          //     height: 40,
+          //   ),
+          // ),
+          // const SizedBox(width: 12),
           Image.asset("assets/images/ic_notification.png",
               width: 24, height: 24),
-          const SizedBox(width: 12),
-          Image.asset("assets/images/ic_search.png", width: 24, height: 24),
+          // const SizedBox(width: 12),
+          // Image.asset("assets/images/ic_search.png", width: 24, height: 24),
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
@@ -220,7 +233,7 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  "Sajon.co",
+                  '$currentUserEmail',
                   style: AppTheme.blackTextStyle
                       .copyWith(fontWeight: AppTheme.bold, fontSize: 12),
                 ),
@@ -230,6 +243,45 @@ class HomePage extends StatelessWidget {
                   width: 16,
                 ),
                 const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.only(right: 15),
+                  child: Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      color: const Color.fromARGB(255, 37, 58, 193),
+                    ),
+                    child: IconButton(
+                      color: const Color.fromARGB(255, 37, 58, 193),
+                      onPressed: () {
+                        if (currentUserEmail != null &&
+                            currentUserEmail!.isNotEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UserPage(
+                                currentUserEmail: currentUserEmail.toString(),
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Handle the case where the email is null or empty
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('User email is not available.'),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.person,
+                        size: 24,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           )
